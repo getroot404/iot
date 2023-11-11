@@ -1,0 +1,73 @@
+
+#define BLYNK_PRINT Serial
+#include <ESP8266WiFi.h>
+#include <BlynkSimpleEsp8266.h>
+#include <SimpleTimer.h>
+
+// You should get Auth Token in the Blynk App.
+// Go to the Project Settings (nut icon).
+char auth[] = "ZdBbkfLWO_s_aysbeZSWUStyZIsmwPDc";
+
+// Your WiFi credentials.
+// Set password to "" for open networks.
+char ssid[] = "Open Clash";
+char pass[] = "sukses.11";
+
+SimpleTimer timer;
+
+// sensors 
+int vs = D0; // vibration sensor 
+int sdata = 0; // sensor data will be stored in this variable.
+
+String vdata = ""; 
+
+// This function sends Arduino's up time every second to Virtual Pin (1).
+// In the app, Widget's reading frequency should be set to PUSH. This means
+// that you define how often to send data to Blynk App.
+void myTimerEvent()
+{
+  // You can send any value at any time.
+  // Please don't send more that 10 values per second.
+  Blynk.virtualWrite(V1, millis() / 1000);
+
+}
+
+void setup()
+{
+  // Debug console
+  Serial.begin(9600);
+  pinMode(vs ,INPUT); 
+  Blynk.begin(auth, ssid, pass, "blynk.cloud", 80);
+
+  // Setup a function to be called every second
+  timer.setInterval(10L,sensorvalue); // 1000L
+}
+
+void loop()
+{
+  Blynk.run();
+  timer.run(); // Initiates BlynkTimer
+
+}
+
+void sensorvalue()
+{
+  long measurement =vibration();
+ //delay(50);
+  Serial.println(measurement);
+  Blynk.virtualWrite(V3, measurement);
+  if( measurement > 1000 )
+  {
+    Blynk.notify("Vibration detected!!");
+  }
+vdata = vdata + "Vibration: " + measurement;  
+  // You can send any value at any time.
+  // Please don't send more that 10 values per second.
+  Blynk.virtualWrite(V2, vdata);
+vdata = ""; 
+}
+
+long vibration(){
+  long measurement=pulseIn (vs, HIGH);  //wait for the pin to get HIGH and returns measurement
+  return measurement;
+}
